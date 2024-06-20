@@ -10,6 +10,7 @@ import com.globant.granmaRestaurant.services.IServices.ICustomerService;
 import com.globant.granmaRestaurant.services.validators.CustomerValidator;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
@@ -107,5 +108,30 @@ public class CustomerServiceImpl implements ICustomerService {
                     "Cliente con documento: " + document + " no encontrado."
             );
         }
+    }
+
+    @Override
+    public List<CustomerDTO> getSortedCustomers(String sortBy, String order, String document, String name) {
+        List<CustomerEntity> customers;
+
+        if (document != null) {
+            customers = customerRepository.findByDocument(document)
+                    .map(List::of)
+                    .orElseThrow(() -> new CreateException(
+                            ExceptionCode.CUSTOMER_NOT_FOUND,
+                            LocalDateTime.now(),
+                            HttpStatus.NOT_FOUND,
+                            "Cliente con documento: " + document + " no encontrado."
+                    ));
+        } else if (name != null) {
+            customers = customerRepository.findByNameContainingIgnoreCase(name);
+        } else {
+            Sort sort = Sort.by(Sort.Direction.fromString(order), sortBy != null ? sortBy : "name");
+            customers = customerRepository.findAll(sort);
+        }
+
+        return customers.stream()
+                .map(customerMapper::customerConvertToDTO)
+                .collect(Collectors.toList());
     }
 }
