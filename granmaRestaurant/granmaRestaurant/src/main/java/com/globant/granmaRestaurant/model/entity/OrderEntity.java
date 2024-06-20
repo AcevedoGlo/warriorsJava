@@ -41,7 +41,7 @@ public class OrderEntity {
     @Column(name = "subtotal", nullable = false)
     private Double subtotal;
 
-    @Column(name = "vat_tax", nullable = false)
+    @Column(name = "vat_tax", nullable = false )
     private Double vatTax;
 
     @Column(name = "grand_total", nullable = false)

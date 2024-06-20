@@ -1,5 +1,8 @@
 package com.globant.granmaRestaurant.exception.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum ExceptionCode {
 
      /*UE = User Error
@@ -12,9 +15,7 @@ public enum ExceptionCode {
     NO_CHANGES("UE-1006"),
     COMBO_ALREADY_EXISTS("UE-1007"),
     COMBO_NOT_FOUND("UE-1008"),
-    INVALID_COMBO_UUID("UE-1009"),
-    COMBO_NAME_ALREADY_EXISTS("UE-1010")
-
+    INVALID_COMBO_UUID("UE-1009")
     ;
 
 
@@ -24,7 +25,4 @@ public enum ExceptionCode {
         this.code = code;
     }
 
-    public String getCode() {
-        return code;
-    }
 }

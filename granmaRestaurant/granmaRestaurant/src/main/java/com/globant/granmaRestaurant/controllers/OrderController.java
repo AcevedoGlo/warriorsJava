@@ -1,7 +1,6 @@
 package com.globant.granmaRestaurant.controllers;
 
-import com.globant.granmaRestaurant.exception.ComboNotFoundException;
-import com.globant.granmaRestaurant.exception.CustomerNotFoundException;
+import com.globant.granmaRestaurant.controllers.IControllerEndpoints.IOrderPath;
 import com.globant.granmaRestaurant.model.DTO.OrderCreationDTO;
 import com.globant.granmaRestaurant.model.DTO.OrderDTO;
 import com.globant.granmaRestaurant.services.IServices.IOrderService;
@@ -16,22 +15,16 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/orders")
+@RequestMapping(IOrderPath.URL_BASE)
 public class OrderController {
 
     @Autowired
     private IOrderService orderService;
 
-    @PostMapping("/create")
-    public ResponseEntity<Object> createOrder(@RequestBody OrderCreationDTO orderCreationDTO, String idCustomer, String idCombo) {
-        try {
-            OrderDTO createdOrder = orderService.createOrder(orderCreationDTO);
-            return new ResponseEntity<>(createdOrder, HttpStatus.CREATED);
-        } catch (CustomerNotFoundException | ComboNotFoundException ex) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-        } catch (RuntimeException ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while creating the order.");
-        }
+    @PostMapping(IOrderPath.CREATE_ORDER)
+    public ResponseEntity<OrderDTO> createOrder(@RequestBody OrderCreationDTO orderCreationDTO) {
+        OrderDTO createdOrder = orderService.createOrder(orderCreationDTO);
+        return new ResponseEntity<>(createdOrder, HttpStatus.CREATED);
     }
 
     @GetMapping
@@ -40,31 +33,20 @@ public class OrderController {
         return new ResponseEntity<>(orders, HttpStatus.OK);
     }
 
-    @GetMapping("/{uuid}")
-    public ResponseEntity<Optional<OrderDTO>> getOrderByUuid(@PathVariable String uuid) {
+    @GetMapping(IOrderPath.GET_ORDER)
+    public ResponseEntity<OrderDTO> getOrderByUuid(@PathVariable String uuid) {
         Optional<OrderDTO> order = orderService.getOrderByUuid(uuid);
-        if (order.isPresent()) {
-            return new ResponseEntity<>(order, HttpStatus.OK);
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
+        return order.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    @PatchMapping("/{uuid}/delivered/{timestamp}")
+    @PatchMapping(IOrderPath.PATCH_ORDER)
     public ResponseEntity<OrderDTO> updateDeliveryStatus(
             @PathVariable String uuid,
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime timestamp
     ) {
         OrderDTO updatedOrder = orderService.updateDeliveryStatus(uuid, timestamp);
-        if (updatedOrder != null) {
-            return new ResponseEntity<>(updatedOrder, HttpStatus.OK);
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
-    }
-
-    @ExceptionHandler(ComboNotFoundException.class)
-    public ResponseEntity<String> handleComboNotFoundException(ComboNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+        return updatedOrder != null ? new ResponseEntity<>(updatedOrder, HttpStatus.OK)
+                : new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 }

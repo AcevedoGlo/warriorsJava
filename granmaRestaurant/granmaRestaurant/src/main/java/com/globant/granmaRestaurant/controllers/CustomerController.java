@@ -46,15 +46,4 @@ public class CustomerController {
             customerService.updateCustomer(document, customerRequest);
             return new ResponseEntity<>(HttpStatus.OK);
         }
-
-    @GetMapping("/sortedCustomers")
-    public ResponseEntity<List<CustomerDTO>> getSortedCustomers(
-            @RequestParam(required = false) String sortBy,
-            @RequestParam(required = false, defaultValue = "asc") String order,
-            @RequestParam(required = false) String document,
-            @RequestParam(required = false) String name) {
-        List<CustomerDTO> customers = customerService.getSortedCustomers(sortBy, order, document, name);
-        return new ResponseEntity<>(customers, HttpStatus.OK);
-    }
-
     }

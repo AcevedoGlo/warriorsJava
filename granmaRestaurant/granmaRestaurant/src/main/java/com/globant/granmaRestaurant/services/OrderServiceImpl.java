@@ -1,7 +1,5 @@
 package com.globant.granmaRestaurant.services;
 
-import com.globant.granmaRestaurant.exception.ComboNotFoundException;
-import com.globant.granmaRestaurant.exception.CustomerNotFoundException;
 import com.globant.granmaRestaurant.mapper.OrderMapperImpl;
 import com.globant.granmaRestaurant.model.DTO.OrderCreationDTO;
 import com.globant.granmaRestaurant.model.DTO.OrderDTO;
@@ -15,17 +13,14 @@ import com.globant.granmaRestaurant.services.IServices.IOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 public class OrderServiceImpl implements IOrderService {
+
     @Autowired
     private OrderRepository orderRepository;
 
@@ -38,26 +33,28 @@ public class OrderServiceImpl implements IOrderService {
     @Autowired
     private OrderMapperImpl orderMapper;
 
+    @Autowired
+    private com.globant.granmaRestaurant.services.util.OrderServiceMethod orderServiceMethod;
+
     @Override
     public OrderDTO createOrder(OrderCreationDTO orderCreationDTO) {
-        CustomerEntity customerEntity = CustomerExistance(orderCreationDTO.getCustomerDocument());
-        ComboEntity comboEntity = ComboExistance(orderCreationDTO.getComboUuid());
+        CustomerEntity customerEntity = orderServiceMethod.validateCustomerExistence(orderCreationDTO.getCustomerDocument(), customerRepository);
+        ComboEntity comboEntity = orderServiceMethod.validateComboExistence(orderCreationDTO.getComboUuid(), comboRepository);
 
         OrderEntity orderEntity = orderMapper.orderConvertToEntity(orderCreationDTO);
 
-        Double subtotal = comboEntity.getPrice() * orderCreationDTO.getQuantity();
-        Double vatTax = subtotal * 0.19;
-        Double grandTotal = subtotal + vatTax;
 
-        String uuid = UUID.randomUUID().toString();
-        orderEntity.setUuid(uuid);
-        orderEntity.setCreationDateTime(getCurrentTimestamp());
+        Double subtotal = Math.round(comboEntity.getPrice() * orderCreationDTO.getQuantity() * 100.0) / 100.0;
+        Double vatTax = Math.round(subtotal * 0.19 * 100.0) / 100.0;
+        Double grandTotal = Math.round((subtotal + vatTax) * 100.0) / 100.0;
+
+        orderEntity.setUuid(orderServiceMethod.generateUUID());
+        orderEntity.setCreationDateTime(orderServiceMethod.getCurrentTimestamp());
         orderEntity.setSubtotal(subtotal);
         orderEntity.setVatTax(vatTax);
         orderEntity.setGrandTotal(grandTotal);
         orderEntity.setDelivered(false);
         orderEntity.setDeliveredDate(null);
-
         orderEntity.setCustomer(customerEntity);
         orderEntity.setCombo(comboEntity);
 
@@ -65,23 +62,6 @@ public class OrderServiceImpl implements IOrderService {
 
         return orderMapper.orderConvertToDTO(orderEntity);
     }
-
-    private CustomerEntity CustomerExistance(String document) {
-        return customerRepository.findByDocument(document)
-                .orElseThrow(() -> new CustomerNotFoundException("Customer not found"));
-    }
-
-    private ComboEntity ComboExistance(String uuid) {
-        return comboRepository.findByUuid(uuid)
-                .orElseThrow(() -> new ComboNotFoundException("Combo not found"));
-    }
-
-    private Timestamp getCurrentTimestamp() {
-        ZonedDateTime zonedDateTime = LocalDateTime.now().atZone(ZoneId.of("America/Bogota"));
-        return Timestamp.from(zonedDateTime.toInstant());
-    }
-
-
 
     @Override
     public List<OrderDTO> getAllOrders() {
@@ -103,22 +83,12 @@ public class OrderServiceImpl implements IOrderService {
         if (optionalOrder.isPresent()) {
             OrderEntity orderEntity = optionalOrder.get();
             orderEntity.setDelivered(true);
-            ZonedDateTime zonedDateTime = deliveredDateTime.atZone(ZoneId.of("America/Bogota"));
-            Timestamp deliveredTimestamp = Timestamp.from(zonedDateTime.toInstant());
-            orderEntity.setDeliveredDate(deliveredTimestamp);
+            orderEntity.setDeliveredDate(orderServiceMethod.convertToTimestamp(deliveredDateTime));
 
             OrderEntity updatedOrder = orderRepository.save(orderEntity);
             return orderMapper.orderConvertToDTO(updatedOrder);
         } else {
             return null;
         }
-    }
-
-    private Double calculateSubtotal(Double price, Integer quantity) {
-        return price * quantity;
-    }
-
-    private Double calculateVATTax(Double subtotal) {
-        return subtotal * 0.19;
     }
 }

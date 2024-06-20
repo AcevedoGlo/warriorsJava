@@ -12,14 +12,22 @@ import java.util.UUID;
 public class ComboMapperImpl implements IComboMapper {
 
     @Override
-    public ComboDTO comboConvertToDTO(ComboEntity comboEntity){
-        return new ComboDTO(comboEntity.getUuid(),comboEntity.getFantasyName(), comboEntity.getCategory(), comboEntity.getDescription(), comboEntity.getPrice(), comboEntity.getAvailable(),comboEntity.getActive());
+    public ComboDTO comboConvertToDTO(ComboEntity comboEntity) {
+        ComboDTO comboDTO = new ComboDTO();
+        comboDTO.setUuid(comboEntity.getUuid());
+        comboDTO.setFantasyName(comboEntity.getFantasyName());
+        comboDTO.setCategory(comboEntity.getCategory());
+        comboDTO.setDescription(comboEntity.getDescription());
+        comboDTO.setPrice(comboEntity.getPrice());
+        comboDTO.setAvailable(comboEntity.getAvailable());
+        comboDTO.setActive(comboEntity.getActive());
+        return comboDTO;
     }
 
     @Override
     public ComboEntity comboConvertToEntity(ComboDTO comboDTO) {
         ComboEntity comboEntity = new ComboEntity();
-        comboEntity.setUuid(UUID.randomUUID().toString()); // Generate a unique UUID
+        comboEntity.setUuid(UUID.randomUUID().toString());
         comboEntity.setFantasyName(comboDTO.getFantasyName().toUpperCase());
         if (comboDTO.getCategory() != null) {
             comboEntity.setCategory(Category.valueOf(comboDTO.getCategory().name().toUpperCase()));
@@ -34,5 +42,3 @@ public class ComboMapperImpl implements IComboMapper {
     }
 
 }
-
-

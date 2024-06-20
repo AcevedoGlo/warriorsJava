@@ -4,9 +4,6 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 @Data
@@ -20,8 +17,11 @@ public class OrderDTO {
         private String extraInformation;
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
         private LocalDateTime creationDateTime;
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "#0.00")
         private Double subtotal;
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "#0.00")
         private Double vatTax;
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "#0.00")
         private Double grandTotal;
         private Boolean delivered;
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")

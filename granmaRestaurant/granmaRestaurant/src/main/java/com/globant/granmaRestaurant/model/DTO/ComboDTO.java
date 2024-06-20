@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ComboDTO {
 
-    private Integer idCombo;
+
     private String uuid;
     private String fantasyName;
     private Category category;
@@ -19,6 +19,5 @@ public class ComboDTO {
     private Boolean available;
     private Boolean active;
 
-    public ComboDTO(String uuid, String fantasyName, Category category, String description, Double price, Boolean available, Boolean active) {
-    }
+
 }

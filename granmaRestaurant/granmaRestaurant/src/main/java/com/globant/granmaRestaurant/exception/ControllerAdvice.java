@@ -1,10 +1,10 @@
 package com.globant.granmaRestaurant.exception;
 
-import com.globant.granmaRestaurant.exception.custonException.CreateException;
+import com.globant.granmaRestaurant.exception.custonException.CustomException;
 import com.globant.granmaRestaurant.exception.DTO.ErrorDTO;
+import com.globant.granmaRestaurant.exception.enums.ExceptionCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -16,8 +16,8 @@ import java.time.LocalDateTime;
 @RestControllerAdvice
 public class ControllerAdvice {
 
-    @ExceptionHandler(CreateException.class)
-    public ResponseEntity<ErrorDTO> createExceptionHandler(CreateException ex) {
+    @ExceptionHandler(CustomException.class)
+    public ResponseEntity<ErrorDTO> createExceptionHandler(CustomException ex) {
         // Capturar el stack trace en un String
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
@@ -38,15 +38,21 @@ public class ControllerAdvice {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorDTO> genericExceptionHandler(Exception ex){
-        ErrorDTO error  = ErrorDTO
-                .builder()
-                .code(HttpStatus.INTERNAL_SERVER_ERROR.toString())
+    public ResponseEntity<ErrorDTO> genericExceptionHandler(Exception ex) {
+        // Capturar el stack trace en un String
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        ex.printStackTrace(pw);
+        String stackTrace = sw.toString();
+
+        ErrorDTO error = ErrorDTO.builder()
+                .code(ExceptionCode.SERVER_ERROR.getCode())
                 .timestamp(LocalDateTime.now())
                 .description(ex.getMessage())
-                .exception("ex.getException()")
+                .exception(stackTrace)
                 .build();
 
+        log.error("Detalle de excepción genérica:", ex);
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

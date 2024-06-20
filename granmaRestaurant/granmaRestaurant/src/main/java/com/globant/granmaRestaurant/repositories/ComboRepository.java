@@ -9,4 +9,6 @@ import java.util.Optional;
 public interface ComboRepository extends JpaRepository<ComboEntity, Integer> {
     Optional<ComboEntity> findByUuid(String uuid);
     void deleteByUuid(String uuid);
+
+    Optional<ComboEntity> findByFantasyName(String fantasyName);
 }

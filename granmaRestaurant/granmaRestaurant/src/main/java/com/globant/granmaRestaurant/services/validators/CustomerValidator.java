@@ -1,6 +1,6 @@
 package com.globant.granmaRestaurant.services.validators;
 
-import com.globant.granmaRestaurant.exception.custonException.CreateException;
+import com.globant.granmaRestaurant.exception.custonException.CustomException;
 import com.globant.granmaRestaurant.exception.enums.ExceptionCode;
 import com.globant.granmaRestaurant.model.DTO.CustomerDTO;
 import com.globant.granmaRestaurant.model.entity.CustomerEntity;
@@ -21,8 +21,8 @@ public class CustomerValidator {
     }
     public void validateDocument(String document) {
         if (document == null || !Pattern.matches("^(CC|CE|P)-[0-9]{1,20}$", document)) {
-            throw new CreateException(
-                    ExceptionCode.INCOMPLETE_OR_INCORRECT_INFORMATION,
+            throw new CustomException(
+                    ExceptionCode.INVALID_DOCUMENT,
                     LocalDateTime.now(),
                     HttpStatus.BAD_REQUEST,
                     "Formato de documento soportado: (CC-CE-P) (-) (1234) Ejemplo: CC-1000234576"
@@ -32,7 +32,7 @@ public class CustomerValidator {
     }
     public void validatePhone(String phone) {
         if (phone == null || !Pattern.matches("^[0-9]{3}-[0-9]{7}$", phone)) {
-            throw new CreateException(
+            throw new CustomException(
                     ExceptionCode.INCOMPLETE_OR_INCORRECT_INFORMATION,
                     LocalDateTime.now(),
                     HttpStatus.BAD_REQUEST,
@@ -42,7 +42,7 @@ public class CustomerValidator {
     }
     public void validateEmail(String email) {
         if (email == null || !Pattern.matches("^[^@]+@[^@]+\\.[^@]+$", email)) {
-            throw new CreateException(
+            throw new CustomException(
                     ExceptionCode.INCOMPLETE_OR_INCORRECT_INFORMATION,
                     LocalDateTime.now(),
                     HttpStatus.BAD_REQUEST,
@@ -52,7 +52,7 @@ public class CustomerValidator {
     }
     public void validateName(String name) {
         if (name == null || name.trim().isEmpty()) {
-            throw new CreateException(
+            throw new CustomException(
                     ExceptionCode.INCOMPLETE_OR_INCORRECT_INFORMATION,
                     LocalDateTime.now(),
                     HttpStatus.BAD_REQUEST,
@@ -62,7 +62,7 @@ public class CustomerValidator {
     }
     public void validateDeliveryAddress(String deliveryAddress) {
         if (deliveryAddress == null || deliveryAddress.trim().isEmpty()) {
-            throw new CreateException(
+            throw new CustomException(
                     ExceptionCode.INCOMPLETE_OR_INCORRECT_INFORMATION,
                     LocalDateTime.now(),
                     HttpStatus.BAD_REQUEST,
@@ -76,7 +76,7 @@ public class CustomerValidator {
                 customerDTO.getPhone().equals(existingCustomer.getPhone()) &&
                 customerDTO.getDeliveryAddress().equals(existingCustomer.getDeliveryAddress()) &&
                 customerDTO.getDocument().equals(existingCustomer.getDocument())) {
-            throw new CreateException(
+            throw new CustomException(
                     ExceptionCode.NO_CHANGES,
                     LocalDateTime.now(),
                     HttpStatus.BAD_REQUEST,

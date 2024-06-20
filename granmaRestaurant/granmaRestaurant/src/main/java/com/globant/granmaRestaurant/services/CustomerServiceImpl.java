@@ -1,6 +1,6 @@
 package com.globant.granmaRestaurant.services;
 
-import com.globant.granmaRestaurant.exception.custonException.CreateException;
+import com.globant.granmaRestaurant.exception.custonException.CustomException;
 import com.globant.granmaRestaurant.exception.enums.ExceptionCode;
 import com.globant.granmaRestaurant.mapper.IMapper.ICustomerMapper;
 import com.globant.granmaRestaurant.model.DTO.CustomerDTO;
@@ -10,7 +10,6 @@ import com.globant.granmaRestaurant.services.IServices.ICustomerService;
 import com.globant.granmaRestaurant.services.validators.CustomerValidator;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
@@ -30,10 +29,6 @@ public class CustomerServiceImpl implements ICustomerService {
     @Autowired
     private CustomerValidator customerValidator;
 
-    public Optional<CustomerEntity> findById(Integer id) {
-        return customerRepository.findById(id);
-    }
-
     @Override
     public List<CustomerDTO> getAllCustomers() {
         return customerRepository.findAll().stream()
@@ -45,7 +40,7 @@ public class CustomerServiceImpl implements ICustomerService {
         customerValidator.validateDocument(document);
         return customerRepository.findByDocument(document)
                 .map(customerMapper::customerConvertToDTO)
-                .orElseThrow(() -> new CreateException(
+                .orElseThrow(() -> new CustomException(
                         ExceptionCode.CUSTOMER_NOT_FOUND,
                         LocalDateTime.now(),
                         HttpStatus.NOT_FOUND,
@@ -58,7 +53,7 @@ public class CustomerServiceImpl implements ICustomerService {
         customerValidator.validateCustomerData(customerDTO);
         customerRepository.findByDocument(customerDTO.getDocument())
                 .ifPresent(existingCustomer -> {
-                    throw new CreateException(
+                    throw new CustomException(
                             ExceptionCode.USER_ALREADY_EXISTS,
                             LocalDateTime.now(),
                             HttpStatus.CONFLICT,
@@ -79,7 +74,7 @@ public class CustomerServiceImpl implements ICustomerService {
         if (existingCustomer.isPresent()) {
             customerRepository.deleteByDocument(document);
         } else {
-            throw new CreateException(
+            throw new CustomException(
                     ExceptionCode.CUSTOMER_NOT_FOUND,
                     LocalDateTime.now(),
                     HttpStatus.NOT_FOUND,
@@ -101,37 +96,12 @@ public class CustomerServiceImpl implements ICustomerService {
 
             customerRepository.save(existingCustomer);
         } else {
-            throw new CreateException(
+            throw new CustomException(
                     ExceptionCode.CUSTOMER_NOT_FOUND,
                     LocalDateTime.now(),
                     HttpStatus.NOT_FOUND,
                     "Cliente con documento: " + document + " no encontrado."
             );
         }
-    }
-
-    @Override
-    public List<CustomerDTO> getSortedCustomers(String sortBy, String order, String document, String name) {
-        List<CustomerEntity> customers;
-
-        if (document != null) {
-            customers = customerRepository.findByDocument(document)
-                    .map(List::of)
-                    .orElseThrow(() -> new CreateException(
-                            ExceptionCode.CUSTOMER_NOT_FOUND,
-                            LocalDateTime.now(),
-                            HttpStatus.NOT_FOUND,
-                            "Cliente con documento: " + document + " no encontrado."
-                    ));
-        } else if (name != null) {
-            customers = customerRepository.findByNameContainingIgnoreCase(name);
-        } else {
-            Sort sort = Sort.by(Sort.Direction.fromString(order), sortBy != null ? sortBy : "name");
-            customers = customerRepository.findAll(sort);
-        }
-
-        return customers.stream()
-                .map(customerMapper::customerConvertToDTO)
-                .collect(Collectors.toList());
     }
 }
